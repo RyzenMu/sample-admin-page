@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchorline — Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0E1B2E;
+    --navy-soft: #16283F;
+    --cream: #F6F4EE;
+    --white: #FFFFFF;
+    --ink: #1B2430;
+    --slate: #6E7A89;
+    --border: #E6E1D6;
+    --amber: #E8954A;
+    --amber-light: #FBE7CE;
+    --green: #4A8B6F;
+    --green-light: #E1EFE7;
+    --red: #C0594A;
+    --red-light: #F7E3DE;
+    --blue: #3E6FA8;
+    --blue-light: #E2E9F2;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--amber);
+    outline-offset: 2px;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+  /* ---------- Layout ---------- */
+
+  .layout {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  .main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ---------- Sidebar ---------- */
+
+  .sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--navy);
+    color: #B9C4D4;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 22px 18px;
+    color: var(--white);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: 0.02em;
+  }
+
+  .brand .icon { width: 22px; height: 22px; color: var(--amber); }
+
+  .nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    flex: 1;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid transparent;
+    color: #AEBACB;
+    font-weight: 500;
+    font-size: 13.5px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .nav-item:hover {
+    background: var(--navy-soft);
+    color: var(--white);
+  }
+
+  .nav-item.active {
+    background: var(--navy-soft);
+    color: var(--white);
+    border-left-color: var(--amber);
+  }
+
+  .sidebar-foot {
+    padding: 16px 18px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .status-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #8FA0B6;
+    margin-bottom: 14px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .status-dot.is-live {
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+
+  .user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .user-name { color: var(--white); font-size: 13px; font-weight: 600; }
+  .user-role { font-size: 12px; color: #8FA0B6; }
+
+  /* ---------- Topbar ---------- */
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 22px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+  }
+
+  .menu-toggle {
+    display: none;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .topbar-title h1 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .topbar-title p {
+    font-size: 13px;
+    color: var(--slate);
+    margin-top: 2px;
+  }
+
+  .topbar-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px;
+    width: 280px;
+  }
+
+  .search .icon { color: var(--slate); width: 16px; height: 16px; }
+
+  .search input {
+    border: none;
+    background: none;
+    outline: none;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .search input::placeholder { color: var(--slate); }
+
+  .icon-btn {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--white);
+    color: var(--ink);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .icon-btn:hover { background: var(--cream); }
+
+  .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--red);
+    color: var(--white);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 3px;
+  }
+
+  /* ---------- Content ---------- */
+
+  .content {
+    padding: 28px 32px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .stat-icon .icon { width: 18px; height: 18px; }
+
+  .stat-icon.amber { background: var(--amber-light); color: var(--amber); }
+  .stat-icon.blue { background: var(--blue-light); color: var(--blue); }
+  .stat-icon.red { background: var(--red-light); color: var(--red); }
+  .stat-icon.green { background: var(--green-light); color: var(--green); }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .stat-label {
+    font-size: 13px;
+    color: var(--slate);
+  }
+
+  .stat-delta {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .stat-delta.up { color: var(--green); }
+  .stat-delta.warn { color: var(--red); }
+  .stat-delta.neutral { color: var(--slate); }
+
+  /* ---------- Panels ---------- */
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-head h2 {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .btn-ghost {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--blue);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+  }
+
+  .btn-ghost:hover { background: var(--blue-light); }
+
+  /* ---------- Table ---------- */
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate);
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .track-id {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+
+  .customer-name { font-weight: 600; }
+
+  /* Route progress — signature element */
+
+  .route {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+  }
+
+  .route-ports {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--slate);
+    letter-spacing: 0.04em;
+  }
+
+  .route-track {
+    position: relative;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+
+  .route-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--amber);
+    border-radius: 2px;
+    height: 100%;
+  }
+
+  .route-marker {
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 2px solid var(--white);
+    transform: translate(-50%, -50%);
+  }
+
+  .route-fill.is-delayed { background: var(--red); }
+  .route-fill.is-done { background: var(--green); }
+  .route-fill.is-loading { background: var(--slate); }
+
+  .route-marker.is-delayed { background: var(--red); }
+  .route-marker.is-done { background: var(--green); }
+  .route-marker.is-loading { background: var(--slate); }
+
+  /* Status badges */
+
+  .badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  .badge-status.transit { background: var(--blue-light); color: var(--blue); }
+  .badge-status.delayed { background: var(--red-light); color: var(--red); }
+  .badge-status.loading { background: var(--cream); color: var(--slate); border: 1px solid var(--border); }
+  .badge-status.customs { background: var(--amber-light); color: var(--amber); }
+  .badge-status.delivered { background: var(--green-light); color: var(--green); }
+
+  .eta { color: var(--slate); font-size: 13px; }
+  .eta strong { color: var(--ink); font-weight: 600; }
+
+  .no-results td {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--slate);
+    font-size: 13px;
+  }
+
+  /* ---------- Fleet list ---------- */
+
+  .fleet-list {
+    list-style: none;
+    padding: 8px;
+  }
+
+  .fleet-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 12px;
+    border-radius: 10px;
+  }
+
+  .fleet-item:hover { background: var(--cream); }
+
+  .fleet-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .fleet-dot.on-route { background: var(--green); }
+  .fleet-dot.loading { background: var(--amber); }
+  .fleet-dot.docked { background: var(--slate); }
+  .fleet-dot.maintenance { background: var(--red); }
+
+  .fleet-name { font-weight: 600; font-size: 13.5px; }
+  .fleet-meta { font-size: 12px; color: var(--slate); margin-top: 2px; }
+
+  /* ---------- Mobile overlay ---------- */
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(14, 27, 46, 0.45);
+    z-index: 40;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .overlay.is-visible { opacity: 1; pointer-events: auto; }
+
+  /* ---------- Responsive ---------- */
+
+  @media (max-width: 1100px) {
+    .content-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 880px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .search { width: 200px; }
+  }
+
+  @media (max-width: 768px) {
+    .menu-toggle { display: flex; }
+
+    .sidebar {
+      position: fixed;
+      z-index: 50;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+
+    .sidebar.is-open { transform: translateX(0); }
+
+    .overlay { display: block; }
+
+    .topbar { padding: 16px 18px; }
+    .topbar-title p { display: none; }
+    .content { padding: 18px 18px 32px; }
+    .search { display: none; }
+  }
+
+  @media (max-width: 540px) {
+    .stats { grid-template-columns: 1fr; }
+    .route { min-width: 120px; }
+    thead th:nth-child(2), tbody td:nth-child(2) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="5" r="2"/>
+        <line x1="12" y1="7" x2="12" y2="20"/>
+        <path d="M5 13a7 7 0 0 0 14 0"/>
+        <line x1="9" y1="9" x2="15" y2="9"/>
+      </svg>
+      Anchorline
+    </div>
+
+    <nav class="nav">
+      <a class="nav-item active" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/>
+          <rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
+        </svg>
+        Overview
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5"/><line x1="12" y1="13" x2="12" y2="21"/>
+        </svg>
+        Shipments
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="6" width="13" height="10" rx="1"/><path d="M14 9h4l3 3v4h-7z"/>
+          <circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/>
+        </svg>
+        Fleet
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/>
+          <path d="M8 19h5a4 4 0 0 0 4-4v-1a4 4 0 0 0-4-4H8"/>
+        </svg>
+        Routes
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 9 12 3l9 6"/>
+          <line x1="9" y1="21" x2="9" y2="14"/><line x1="15" y1="21" x2="15" y2="14"/>
+        </svg>
+        Warehouses
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="8" r="3"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/>
+          <circle cx="17" cy="8" r="2.4"/><path d="M15.5 13.2A5.5 5.5 0 0 1 21.5 18.5"/>
+        </svg>
+        Customers
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="20" x2="5" y2="11"/><line x1="12" y1="20" x2="12" y2="5"/><line x1="19" y1="20" x2="19" y2="14"/>
+        </svg>
+        Reports
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 13a7.9 7.9 0 0 0 0-2l1.9-1.3-1.8-3.1-2.2.6a8 8 0 0 0-1.7-1l-.3-2.3H10.7l-.3 2.3a8 8 0 0 0-1.7 1l-2.2-.6-1.8 3.1L6.6 11a7.9 7.9 0 0 0 0 2l-1.9 1.3 1.8 3.1 2.2-.6a8 8 0 0 0 1.7 1l.3 2.3h2.6l.3-2.3a8 8 0 0 0 1.7-1l2.2.6 1.8-3.1z"/>
+        </svg>
+        Settings
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="status-line">
+        <span class="status-dot is-live"></span>
+        All systems operational
+      </div>
+      <div class="user">
+        <div class="avatar">JM</div>
+        <div>
+          <div class="user-name">Jordan Mills</div>
+          <div class="user-role">Ops Manager</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="topbar-title">
+        <h1>Overview</h1>
+        <p>Monday, June 15 — 248 shipments active across 14 routes</p>
+      </div>
+      <div class="topbar-actions">
+        <div class="search">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.2" y2="16.2"/>
+          </svg>
+          <input type="text" id="searchInput" placeholder="Search shipments, customers, ports…">
+        </div>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9a6 6 0 0 1 12 0v5l1.5 2.5h-15L6 14V9z"/><path d="M10 19a2 2 0 0 0 4 0"/>
+          </svg>
+          <span class="badge">3</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="stats">
+        <div class="stat-card">
+          <div class="stat-icon amber">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 8 12 3 3 8v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5"/><line x1="12" y1="13" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <div class="stat-value">248</div>
+          <div class="stat-label">Active shipments</div>
+          <div class="stat-delta up">+12 since last week</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="6" width="13" height="10" rx="1"/><path d="M14 9h4l3 3v4h-7z"/>
+              <circle cx="6" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/>
+            </svg>
+          </div>
+          <div class="stat-value">186</div>
+          <div class="stat-label">In transit</div>
+          <div class="stat-delta neutral">Across 14 active routes</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3 2 20h20L12 3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12" y2="17"/>
+            </svg>
+          </div>
+          <div class="stat-value">7</div>
+          <div class="stat-label">Delayed</div>
+          <div class="stat-delta warn">Flagged for review</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/>
+            </svg>
+          </div>
+          <div class="stat-value">$482,300</div>
+          <div class="stat-label">Revenue, month to date</div>
+          <div class="stat-delta up">+8.4% vs May</div>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel shipments-panel">
+          <div class="panel-head">
+            <h2>Active shipments</h2>
+            <button class="btn-ghost">View all</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Customer</th>
+                <th>Route</th>
+                <th>Status</th>
+                <th>ETA</th>
+              </tr>
+            </thead>
+            <tbody id="shipmentsBody">
+              <tr class="data-row">
+                <td class="track-id">ANC-48217</td>
+                <td class="customer-name">Meridian Textiles</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>LAX</span><span>SGP</span></div>
+                    <div class="route-track">
+                      <div class="route-fill" style="width: 68%"></div>
+                      <div class="route-marker" style="left: 68%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status transit">In transit</span></td>
+                <td class="eta"><strong>Jun 19</strong></td>
+              </tr>
+              <tr class="data-row">
+                <td class="track-id">ANC-48198</td>
+                <td class="customer-name">Korvell Foods</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>NYC</span><span>LIS</span></div>
+                    <div class="route-track">
+                      <div class="route-fill is-delayed" style="width: 42%"></div>
+                      <div class="route-marker is-delayed" style="left: 42%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status delayed">Delayed</span></td>
+                <td class="eta"><strong>Jun 22</strong> · was Jun 20</td>
+              </tr>
+              <tr class="data-row">
+                <td class="track-id">ANC-48305</td>
+                <td class="customer-name">Birch &amp; Co.</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>SHA</span><span>LAX</span></div>
+                    <div class="route-track">
+                      <div class="route-fill" style="width: 85%"></div>
+                      <div class="route-marker" style="left: 85%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status transit">In transit</span></td>
+                <td class="eta"><strong>Jun 17</strong></td>
+              </tr>
+              <tr class="data-row">
+                <td class="track-id">ANC-48311</td>
+                <td class="customer-name">Tideline Robotics</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>RTM</span><span>MIA</span></div>
+                    <div class="route-track">
+                      <div class="route-fill is-loading" style="width: 8%"></div>
+                      <div class="route-marker is-loading" style="left: 8%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status loading">Loading</span></td>
+                <td class="eta"><strong>Jun 28</strong></td>
+              </tr>
+              <tr class="data-row">
+                <td class="track-id">ANC-48276</td>
+                <td class="customer-name">Halden Group</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>HKG</span><span>SEA</span></div>
+                    <div class="route-track">
+                      <div class="route-fill" style="width: 51%"></div>
+                      <div class="route-marker" style="left: 51%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status customs">Customs hold</span></td>
+                <td class="eta"><strong>Jun 23</strong></td>
+              </tr>
+              <tr class="data-row">
+                <td class="track-id">ANC-48330</td>
+                <td class="customer-name">Aubrac Wines</td>
+                <td>
+                  <div class="route">
+                    <div class="route-ports"><span>LEH</span><span>NYC</span></div>
+                    <div class="route-track">
+                      <div class="route-fill is-done" style="width: 100%"></div>
+                      <div class="route-marker is-done" style="left: 100%"></div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="badge-status delivered">Delivered</span></td>
+                <td class="eta"><strong>Jun 14</strong></td>
+              </tr>
+              <tr class="no-results" id="noResults" hidden>
+                <td colspan="5">No shipments match "<span id="noResultsQuery"></span>". Try a tracking ID, customer name, or port code.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="panel fleet-panel">
+          <div class="panel-head">
+            <h2>Fleet status</h2>
+          </div>
+          <ul class="fleet-list">
+            <li class="fleet-item">
+              <span class="fleet-dot on-route"></span>
+              <div>
+                <div class="fleet-name">MV Solstice</div>
+                <div class="fleet-meta">Container ship · en route to Singapore</div>
+              </div>
+            </li>
+            <li class="fleet-item">
+              <span class="fleet-dot loading"></span>
+              <div>
+                <div class="fleet-name">Truck 14-A</div>
+                <div class="fleet-meta">Reefer · loading at Rotterdam dock</div>
+              </div>
+            </li>
+            <li class="fleet-item">
+              <span class="fleet-dot docked"></span>
+              <div>
+                <div class="fleet-name">MV Northwind</div>
+                <div class="fleet-meta">Container ship · docked, Long Beach</div>
+              </div>
+            </li>
+            <li class="fleet-item">
+              <span class="fleet-dot maintenance"></span>
+              <div>
+                <div class="fleet-name">Truck 22-B</div>
+                <div class="fleet-meta">Flatbed · maintenance, Newark depot</div>
+              </div>
+            </li>
+            <li class="fleet-item">
+              <span class="fleet-dot on-route"></span>
+              <div>
+                <div class="fleet-name">MV Caldera</div>
+                <div class="fleet-meta">Bulk carrier · en route to Lisbon</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const menuToggle = document.getElementById('menuToggle');
+
+  function closeSidebar() {
+    sidebar.classList.remove('is-open');
+    overlay.classList.remove('is-visible');
+  }
+
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('is-open');
+    overlay.classList.toggle('is-visible');
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      closeSidebar();
+    });
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  const rows = document.querySelectorAll('#shipmentsBody tr.data-row');
+  const noResults = document.getElementById('noResults');
+  const noResultsQuery = document.getElementById('noResultsQuery');
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const match = row.textContent.toLowerCase().includes(query);
+      row.hidden = !match;
+      if (match) visible++;
+    });
+    if (visible === 0 && query !== '') {
+      noResults.hidden = false;
+      noResultsQuery.textContent = searchInput.value.trim();
+    } else {
+      noResults.hidden = true;
+    }
+  });
+</script>
+
+</body>
+</html>
